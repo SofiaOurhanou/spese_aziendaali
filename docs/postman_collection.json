@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "Rimborsi Spese Aziendali",
+    "description": "API per la gestione delle richieste di rimborso spese aziendali",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "rimborsoId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"responsabile@azienda.it\",\n  \"password\": \"Password1!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mario\",\n  \"cognome\": \"Neri\",\n  \"email\": \"mario.neri@azienda.it\",\n  \"password\": \"Password1!\",\n  \"confermaPassword\": \"Password1!\",\n  \"ruolo\": \"DIPENDENTE\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categorie",
+      "item": [
+        {
+          "name": "Lista categorie",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/categorie"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rimborsi",
+      "item": [
+        {
+          "name": "Lista rimborsi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/rimborsi?stato=IN_ATTESA&mese=2026-05",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rimborsi"],
+              "query": [
+                { "key": "stato", "value": "IN_ATTESA" },
+                { "key": "categoriaId", "value": "1", "disabled": true },
+                { "key": "mese", "value": "2026-05" },
+                { "key": "dipendenteId", "value": "2", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dettaglio rimborso",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}"
+          }
+        },
+        {
+          "name": "Crea rimborso",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataSpesa\": \"2026-06-01\",\n  \"categoriaId\": 1,\n  \"importo\": 50.00,\n  \"descrizione\": \"Pranzo di lavoro\",\n  \"riferimentoGiustificativo\": \"Scontrino n. 123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/rimborsi"
+          }
+        },
+        {
+          "name": "Modifica rimborso",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataSpesa\": \"2026-06-01\",\n  \"categoriaId\": 1,\n  \"importo\": 55.00,\n  \"descrizione\": \"Pranzo di lavoro aggiornato\"\n}"
+            },
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}"
+          }
+        },
+        {
+          "name": "Elimina rimborso",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}"
+          }
+        },
+        {
+          "name": "Approva rimborso",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}/approva"
+          }
+        },
+        {
+          "name": "Rifiuta rimborso",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivazioneRifiuto\": \"Documentazione insufficiente\"\n}"
+            },
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}/rifiuta"
+          }
+        },
+        {
+          "name": "Liquida rimborso",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/rimborsi/{{rimborsoId}}/liquida"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statistiche",
+      "item": [
+        {
+          "name": "Riepilogo rimborsi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/statistiche/rimborsi?mese=2026-05",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "statistiche", "rimborsi"],
+              "query": [
+                { "key": "mese", "value": "2026-05" },
+                { "key": "categoriaId", "value": "1", "disabled": true },
+                { "key": "dipendenteId", "value": "2", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,37 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gestione Rimborsi Spese Aziendali
 
-## Getting Started
+Applicazione web full-stack per la gestione delle richieste di rimborso spese aziendali (prova pratica S5).
 
-First, run the development server:
+## Stack
+
+- **Frontend**: Next.js 16 (App Router, CSR con Client Components)
+- **Backend**: API REST Next.js Route Handlers
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: JWT (Bearer token)
+- **Validazione**: Zod
+
+## Avvio rapido
+
+### 1. Dipendenze
+
+```bash
+npm install
+```
+
+### 2. Variabili d'ambiente
+
+Copia `.env.example` in `.env` e configura:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/spese_aziendali"
+DIRECT_URL="postgresql://user:password@localhost:5432/spese_aziendali"
+JWT_SECRET="cambia-questo-segreto-in-produzione"
+```
+
+### 3. Database
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+Per resettare il database in sviluppo:
+
+```bash
+npm run db:reset
+```
+
+### 4. Avvio applicazione
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Credenziali di test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Password per tutti gli utenti: `Password1!`
 
-## Learn More
+| Ruolo | Email |
+|-------|-------|
+| Responsabile amministrativo | responsabile@azienda.it |
+| Dipendente | laura.bianchi@azienda.it |
+| Dipendente | giuseppe.verdi@azienda.it |
 
-To learn more about Next.js, take a look at the following resources:
+## Funzionalità
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Dipendente
+- Registrazione e login
+- Creazione richieste di rimborso
+- Visualizzazione, modifica ed eliminazione delle proprie richieste (solo in stato "In attesa")
+- Filtri per stato, categoria e mese
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Responsabile amministrativo
+- Visualizzazione di tutte le richieste
+- Approvazione, rifiuto e liquidazione
+- Statistiche aggregate per mese e categoria
+- Filtri aggiuntivi per dipendente
 
-## Deploy on Vercel
+## API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tutte le API (eccetto login e register) richiedono header:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# spese_aziendaali
+```
+Authorization: Bearer <token>
+```
+
+### Autenticazione
+
+| Metodo | Endpoint | Descrizione |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Registrazione utente |
+| POST | `/api/auth/login` | Login (restituisce token JWT) |
+
+### Categorie
+
+| Metodo | Endpoint | Descrizione |
+|--------|----------|-------------|
+| GET | `/api/categorie` | Elenco categorie spesa |
+
+### Rimborsi
+
+| Metodo | Endpoint | Descrizione |
+|--------|----------|-------------|
+| GET | `/api/rimborsi` | Lista con filtri (`stato`, `categoriaId`, `mese`, `dipendenteId`) |
+| POST | `/api/rimborsi` | Crea richiesta (solo dipendente) |
+| GET | `/api/rimborsi/{id}` | Dettaglio |
+| PUT | `/api/rimborsi/{id}` | Modifica (solo dipendente, solo IN_ATTESA) |
+| DELETE | `/api/rimborsi/{id}` | Elimina (solo dipendente, solo IN_ATTESA) |
+| PUT | `/api/rimborsi/{id}/approva` | Approva (solo responsabile) |
+| PUT | `/api/rimborsi/{id}/rifiuta` | Rifiuta (solo responsabile) |
+| PUT | `/api/rimborsi/{id}/liquida` | Liquida (solo responsabile) |
+
+### Statistiche
+
+| Metodo | Endpoint | Descrizione |
+|--------|----------|-------------|
+| GET | `/api/statistiche/rimborsi` | Riepilogo per mese e categoria (solo responsabile) |
+
+Query params: `mese` (YYYY-MM), `categoriaId`, `dipendenteId`
+
+## Test API con Postman
+
+Importa la collection in `docs/postman_collection.json`.
+
+1. Esegui **Login** per ottenere il token
+2. Copia il token nella variabile `token` della collection
+3. Testa gli altri endpoint
+
+## Struttura progetto
+
+```
+app/
+  api/          # Route handlers API
+  dashboard/    # Dashboard post-login
+  login/        # Pagina login
+  register/     # Pagina registrazione
+  rimborsi/     # Gestione richieste
+  statistiche/  # Riepilogo responsabile
+components/     # Componenti UI riutilizzabili
+lib/            # Auth, Prisma, helper API client
+prisma/         # Schema e seed
+schemas/        # Validazione Zod
+docs/           # Postman collection
+```

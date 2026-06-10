@@ -5,22 +5,32 @@ import { z } from "zod";
 ========================= */
 export const creaRimborsoSchema = z.object({
   dataSpesa: z.coerce.date(),
-  categoriaId: z.number(),
-  importo: z.number().positive(),
-  descrizione: z.string().min(1),
-  riferimentoGiustificativo: z.string().optional()
+  categoriaId: z.coerce.number().int().positive(),
+  importo: z.coerce.number().positive("L'importo deve essere maggiore di zero"),
+  descrizione: z.string().trim().min(1, "Descrizione obbligatoria"),
+  riferimentoGiustificativo: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => v === undefined || v.length > 0, {
+      message: "Il riferimento non può essere composto solo da spazi",
+    }),
 });
 
 /* =========================
    AGGIORNAMENTO RIMBORSO
    (solo se IN_ATTESA)
 ========================= */
-export const aggiornaRimborsoSchema = z.object({
-  dataSpesa: z.coerce.date(),
-  categoriaId: z.number(),
-  importo: z.number().positive(),
-  descrizione: z.string().min(1),
-  riferimentoGiustificativo: z.string().optional()
+export const aggiornaRimborsoSchema = creaRimborsoSchema;
+
+export const rifiutaRimborsoSchema = z.object({
+  motivazioneRifiuto: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => v === undefined || v.length > 0, {
+      message: "La motivazione non può essere composta solo da spazi",
+    }),
 });
 
 /* =========================

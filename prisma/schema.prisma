@@ -7,56 +7,83 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-enum ruolo {
+
+enum Role {
   DIPENDENTE
   RESPONSABILE
 }
 
-enum statorichiesta {
+enum StatoRimborso {
   IN_ATTESA
   APPROVATA
   RIFIUTATA
   LIQUIDATA
 }
 
-model utente {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  cognome   String
-  email     String   @unique
-  password  String
-  ruolo     ruolo
+model User {
+  id       Int    @id @default(autoincrement())
+  nome     String
+  cognome  String
+  email    String @unique
+  password String
+  ruolo    Role
 
-  richieste richiestarimborso[] @relation("dipendente")
-  valutate  richiestarimborso[] @relation("responsabile")
+  // richieste create dal dipendente
+  richieste RichiestaRimborso[] @relation("DipendenteRichieste")
+
+  // richieste valutate dal responsabile
+  valutazioni RichiestaRimborso[] @relation("ResponsabileValutazione")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model categoriaspesa {
-  id          Int      @id @default(autoincrement())
-  descrizione String   @unique
+model CategoriaSpesa {
+  id          Int    @id @default(autoincrement())
+  descrizione String @unique
 
-  richieste   richiestarimborso[]
+  richieste RichiestaRimborso[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model richiestarimborso {
-  id                     Int             @id @default(autoincrement())
-  datainserimento        DateTime        @default(now())
-  dataspesa              DateTime
-  importo                Float
-  descrizione            String
-  riferimentoGiustificativo    String?
-  stato                  statorichiesta  @default(IN_ATTESA)
+model RichiestaRimborso {
+  id Int @id @default(autoincrement())
 
-  datavalutazione        DateTime?
-  dataliquidazione       DateTime?
-  motivazionerifiuto     String?
+  dataInserimento DateTime @default(now())
+  dataSpesa       DateTime
 
-  dipendenteid           Int
-  responsabileid         Int?
+  importo Decimal @db.Decimal(10, 2)
 
-  categoriaid            Int
+  descrizione               String
+  riferimentoGiustificativo String?
 
-  dipendente             utente @relation("dipendente", fields: [dipendenteid], references: [id])
-  responsabile           utente? @relation("responsabile", fields: [responsabileid], references: [id])
-  categoria              categoriaspesa @relation(fields: [categoriaid], references: [id])
+  stato StatoRimborso @default(IN_ATTESA)
+
+  // Dipendente che ha creato la richiesta
+  dipendenteId Int
+  dipendente User @relation("DipendenteRichieste", fields: [dipendenteId], references: [id])
+
+  // Categoria
+  categoriaId Int
+  categoria   CategoriaSpesa @relation(fields: [categoriaId], references: [id])
+
+  // Responsabile che ha valutato
+  responsabileValutazioneId Int?
+  responsabileValutazione User? @relation("ResponsabileValutazione", fields: [responsabileValutazioneId], references: [id])
+
+  dataValutazione DateTime?
+
+  motivazioneRifiuto String?
+
+  dataLiquidazione DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dipendenteId])
+  @@index([categoriaId])
+  @@index([stato])
+  @@index([dataSpesa])
 }

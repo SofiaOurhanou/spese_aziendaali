@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum ruolo {
+  DIPENDENTE
+  RESPONSABILE
+}
+
+enum statorichiesta {
+  IN_ATTESA
+  APPROVATA
+  RIFIUTATA
+  LIQUIDATA
+}
+
+model utente {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cognome   String
+  email     String   @unique
+  password  String
+  ruolo     ruolo
+
+  richieste richiestarimborso[] @relation("dipendente")
+  valutate  richiestarimborso[] @relation("responsabile")
+}
+
+model categoriaspesa {
+  id          Int      @id @default(autoincrement())
+  descrizione String   @unique
+
+  richieste   richiestarimborso[]
+}
+
+model richiestarimborso {
+  id                     Int             @id @default(autoincrement())
+  datainserimento        DateTime        @default(now())
+  dataspesa              DateTime
+  importo                Float
+  descrizione            String
+  riferimentoGiustificativo    String?
+  stato                  statorichiesta  @default(IN_ATTESA)
+
+  datavalutazione        DateTime?
+  dataliquidazione       DateTime?
+  motivazionerifiuto     String?
+
+  dipendenteid           Int
+  responsabileid         Int?
+
+  categoriaid            Int
+
+  dipendente             utente @relation("dipendente", fields: [dipendenteid], references: [id])
+  responsabile           utente? @relation("responsabile", fields: [responsabileid], references: [id])
+  categoria              categoriaspesa @relation(fields: [categoriaid], references: [id])
+}
